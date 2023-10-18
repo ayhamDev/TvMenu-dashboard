@@ -13,22 +13,32 @@ export default defineConfig({
 
       includeAssets: ["**/*"],
       manifest: {
-        name: "My Awesome App",
-        short_name: "MyApp",
+        name: "Menuone Dashborad",
+        short_name: "Menuone",
         display: "standalone",
         scope: "/",
         start_url: "/",
-        description: "My Awesome App description",
+        description: "Menuone Admin Dashoard",
         theme_color: "#ffffff",
         icons: [
+          {
+            src: "/icon-128x128.png",
+            sizes: "128x128",
+            type: "image/png",
+          },
+          {
+            src: "/icon-144x144.png",
+            sizes: "144x144",
+            type: "image/png",
+          },
           {
             src: "/icon-192x192.png",
             sizes: "192x192",
             type: "image/png",
           },
           {
-            src: "/icon-256x256.png",
-            sizes: "256x256",
+            src: "/icon-384x384.png",
+            sizes: "384x384",
             type: "image/png",
           },
           {
