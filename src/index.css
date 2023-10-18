@@ -1,0 +1,116 @@
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #f3f3f3;
+}
+* {
+  box-sizing: border-box;
+}
+
+.css-h86el7-MuiButtonBase-root-MuiListItemButton-root.Mui-selected {
+  background-color: #424242 !important;
+}
+.scrollbar {
+  scroll-behavior: smooth;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+/* width */
+.scrollbar::-webkit-scrollbar {
+  width: 15px;
+}
+.scrollbar {
+  overflow: overlay;
+}
+
+/* Track */
+.scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Handle */
+.scrollbar::-webkit-scrollbar-thumb {
+  background: #222222;
+}
+.scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #444444;
+}
+.MuiCardHeader-action {
+  margin: 0 !important;
+}
+/* Rectangle 1 */
+.FancyBoxShadow {
+  animation-name: shadowBox;
+  animation-fill-mode: forwards;
+  animation-duration: 1s;
+  animation-play-state: running;
+  animation-timing-function: ease-in;
+  background: #ffffff;
+}
+.apexcharts-toolbar {
+  z-index: 8 !important;
+}
+.css-hhhn8f-MuiDataGrid-root .MuiDataGrid-columnHeader:focus,
+.css-hhhn8f-MuiDataGrid-root .MuiDataGrid-cell:focus {
+  outline: none !important;
+}
+.MuiDataGrid-root {
+  user-select: none;
+}
+.swiper-slide {
+  min-height: 512px;
+  border-radius: 20px;
+}
+a {
+  text-decoration: none;
+  color: initial;
+}
+
+.swiper-button-prev {
+  z-index: 99999999999999999999;
+  left: 30px;
+}
+.swiper-button-next {
+  right: 30px;
+  z-index: 99999999999999999999;
+}
+.swiper,
+.swiper-wrapper,
+.swiper-slide,
+.swiper-slide > .MuiBox-root {
+  border-radius: 20px;
+}
+.swiper-pagination-fraction,
+.swiper-pagination-custom,
+.swiper-horizontal > .swiper-pagination-bullets,
+.swiper-pagination-bullets.swiper-pagination-horizontal {
+  bottom: 25px !important;
+}
+.swiper-pagination-fraction,
+.swiper-pagination-custom,
+.swiper-horizontal > .swiper-pagination-bullets,
+.swiper-pagination-bullets.swiper-pagination-horizontal span {
+  padding: 6px;
+}
+@keyframes shadowBox {
+  from {
+    box-shadow: 0px 0px 0px rgba(18, 18, 18, 0.06),
+      0px 0px 0px rgba(18, 18, 18, 0.0390071),
+      0px 0px 0px rgba(18, 18, 18, 0.0299155),
+      0px 0px 0px rgba(18, 18, 18, 0.0221335),
+      0px 0px 0px rgba(18, 18, 18, 0.0131208);
+  }
+  to {
+    box-shadow: 0px 173px 130px rgba(18, 18, 18, 0.06),
+      0px 63.1478px 47.4521px rgba(18, 18, 18, 0.0390071),
+      0px 30.6571px 23.0371px rgba(18, 18, 18, 0.0299155),
+      0px 15.0287px 11.2932px rgba(18, 18, 18, 0.0221335),
+      0px 5.94236px 4.46536px rgba(18, 18, 18, 0.0131208);
+  }
+}
+.MuiDataGrid-virtualScroller.css-axafay-MuiDataGrid-virtualScroller {
+  min-height: 100px;
+}
