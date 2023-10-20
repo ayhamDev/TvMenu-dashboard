@@ -210,7 +210,7 @@ export default function Dashboard({
           >
             <DrawerHeader>
               <Typography variant="h6" color={colors.grey[200]}>
-                {!open && !ismobile ? `Apx` : `Appexly`}
+                {!open && !ismobile ? `MD` : `Menuone Dashboard`}
               </Typography>
             </DrawerHeader>
             <Box className="scrollbar">
@@ -242,17 +242,15 @@ export default function Dashboard({
           >
             <DrawerHeader>
               <Typography variant="h6" color={colors.grey[200]}>
-                {!open && !ismobile ? `AD` : `Admin Dashboard`}
+                {!open && !ismobile ? `MD` : `Menuone Dashboard`}
               </Typography>
             </DrawerHeader>
-            <Box className="scrollbar">
-              <List>
-                {items.map((role, index) => (
-                  // @ts-ignore
-                  <SidebarItem key={index} role={role} open={open} />
-                ))}
-              </List>
-            </Box>
+            <List className="scrollbar" sx={{ overflowX: "hidden" }}>
+              {items.map((role, index) => (
+                // @ts-ignore
+                <SidebarItem key={index} role={role} open={open} />
+              ))}
+            </List>
           </DrawerDesktop>
         )}
 

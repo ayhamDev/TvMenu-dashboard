@@ -6,27 +6,11 @@ import React, { Suspense } from "react";
 
 import LoadingSpinner from "./components/LoadingSpinner";
 const Overview = React.lazy(() => import("./pages/Admin/Overview"));
-const Product = React.lazy(() => import("./pages/Admin/Product"));
-const Order = React.lazy(() => import("./pages/Admin/Order"));
-const Catagory = React.lazy(() => import("./pages/Admin/Catagory"));
-const User = React.lazy(() => import("./pages/Admin/User"));
-const Login = React.lazy(() => import("./pages/Admin/Login"));
 const Dashboard = React.lazy(() => import("./pages/Admin/Dashboard"));
+const Login = React.lazy(() => import("./pages/Admin/Login"));
 
-const ProductDetails = React.lazy(
-  () => import("./pages/Admin/Details/product")
-);
-const ProductCreate = React.lazy(() => import("./pages/Admin/Create/product"));
-
-const CatagoryDetails = React.lazy(
-  () => import("./pages/Admin/Details/Catagory")
-);
-import CatagoryCreate from "./pages/Admin/Create/CatagoryCreate";
-
-const UserDetails = React.lazy(() => import("./pages/Admin/Details/User"));
-const OrderDetails = React.lazy(() => import("./pages/Admin/Details/order"));
-
-const Settings = React.lazy(() => import("./pages/Admin/Settings"));
+const NewDevices = React.lazy(() => import("./pages/Admin/NewDevices"));
+const Devices = React.lazy(() => import("./pages/Admin/Devices"));
 
 import { AnimatePresence } from "framer-motion";
 import { HashLoader } from "react-spinners";
@@ -53,7 +37,6 @@ const App = () => {
             />
           }
         >
-          {/* General */}
           <Route
             path="/admin"
             element={
@@ -62,95 +45,19 @@ const App = () => {
               </Suspense>
             }
           />
-
-          {/* CMS */}
           <Route
-            path="/admin/product"
+            path="/admin/unregistered"
             element={
               <Suspense fallback={<LoadingSpinner />}>
-                <Product />
+                <NewDevices />
               </Suspense>
             }
           />
           <Route
-            path="/admin/product/create"
+            path="/admin/devices"
             element={
               <Suspense fallback={<LoadingSpinner />}>
-                <ProductCreate />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/admin/product/:id"
-            element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <ProductDetails />
-              </Suspense>
-            }
-          />
-
-          <Route
-            path="/admin/catagory"
-            element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <Catagory />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/admin/catagory/create"
-            element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <CatagoryCreate />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/admin/catagory/:id"
-            element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <CatagoryDetails />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/admin/order"
-            element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <Order />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/admin/order/:userId/:orderId"
-            element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <OrderDetails />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/admin/user"
-            element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <User />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/admin/user/:id"
-            element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <UserDetails />
-              </Suspense>
-            }
-          />
-
-          <Route
-            path="/admin/settings"
-            element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <Settings />
+                <Devices />
               </Suspense>
             }
           />

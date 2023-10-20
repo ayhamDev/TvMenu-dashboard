@@ -33,10 +33,10 @@ body,
 
 /* Handle */
 .scrollbar::-webkit-scrollbar-thumb {
-  background: #222222;
+  background: #444444;
 }
 .scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #444444;
+  background: #666666;
 }
 .MuiCardHeader-action {
   margin: 0 !important;

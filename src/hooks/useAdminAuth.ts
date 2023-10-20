@@ -14,7 +14,7 @@ const useAdminAuth = () => {
     },
     VerifyToken: async () => {
       try {
-        await api.get("/verifytoken", {
+        await api.get("/admin/verify", {
           headers: {
             Authorization: `Bearer ${auth.accessToken}`,
           },

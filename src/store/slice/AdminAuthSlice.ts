@@ -3,10 +3,6 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 
 export interface AuthState {
   value: {
-    user?: {
-      emai: string;
-    };
-    admin?: boolean;
     accessToken?: string;
     isAuthenticated: boolean;
   };
@@ -22,8 +18,8 @@ export const AuthSlice = createSlice({
   name: "adminAuth",
   initialState,
   reducers: {
-    Login(state, action: PayloadAction<object>) {
-      state.value = { ...action.payload, isAuthenticated: true };
+    Login(state, action: PayloadAction<string>) {
+      state.value = { accessToken: action.payload, isAuthenticated: true };
       localStorage.setItem("admin", JSON.stringify({ ...state.value }));
     },
     LogOut(state) {

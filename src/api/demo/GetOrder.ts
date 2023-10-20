@@ -1,4 +1,4 @@
-import api from "./API";
+import api from "../API";
 
 export default function GetOrders(
   token: string | undefined,

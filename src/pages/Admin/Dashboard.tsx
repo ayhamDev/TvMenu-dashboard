@@ -1,10 +1,4 @@
-import {
-  AnalyticsRounded,
-  Inventory,
-  Bookmark,
-  ShoppingCart,
-  AccountCircle,
-} from "@mui/icons-material";
+import { TvRounded, TvOffRounded, AnalyticsRounded } from "@mui/icons-material";
 import { Box, Container, colors, useTheme } from "@mui/material";
 import React, { useLayoutEffect } from "react";
 import DashboardPart from "../../components/Admin/DashboardPart";
@@ -31,27 +25,17 @@ export default function Dashboard({
       ],
     },
     {
-      title: "Content Management",
+      title: "Devices Management",
       items: [
         {
-          label: "Products",
-          icon: <Inventory sx={{ color: colors.grey[500] }} />,
-          path: "/admin/product",
+          label: "Devices",
+          icon: <TvRounded sx={{ color: colors.grey[500] }} />,
+          path: "/admin/devices",
         },
         {
-          label: "Catagories",
-          icon: <Bookmark sx={{ color: colors.grey[500] }} />,
-          path: "/admin/catagory",
-        },
-        {
-          label: "Orders",
-          icon: <ShoppingCart sx={{ color: colors.grey[500] }} />,
-          path: "/admin/order",
-        },
-        {
-          label: "Users",
-          icon: <AccountCircle sx={{ color: colors.grey[500] }} />,
-          path: "/admin/user",
+          label: "New Devices",
+          icon: <TvOffRounded sx={{ color: colors.grey[500] }} />,
+          path: "/admin/unregistered",
         },
       ],
     },

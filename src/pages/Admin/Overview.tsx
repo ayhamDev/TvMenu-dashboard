@@ -33,7 +33,7 @@ const Overview = () => {
       <Typography variant="h5" paddingBottom={Theme.spacing(4)}>
         {page}
       </Typography>
-      <Grid container spacing={3}>
+      {/* <Grid container spacing={3}>
         <Grid item xs={12} sm={6} lg={3}>
           <OverviewItemStatus
             title="TOTAL INCOME"
@@ -160,7 +160,7 @@ const Overview = () => {
             sx={{ height: "100%" }}
           />
         </Grid>
-      </Grid>
+      </Grid> */}
     </motion.div>
   );
 };

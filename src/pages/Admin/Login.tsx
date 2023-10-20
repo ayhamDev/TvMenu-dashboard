@@ -17,6 +17,7 @@ import { Login } from "../../store/slice/AdminAuthSlice";
 import { motion } from "framer-motion";
 import isMobile from "is-mobile";
 import { AdminMotionProps } from "../../utils/ConfigMotion";
+import api from "../../api/API";
 
 const LoginPage = () => {
   const Theme = useTheme();
@@ -34,8 +35,8 @@ const LoginPage = () => {
 
     const email = emailRef.current?.value;
     const password = passwordRef.current?.value;
-    axios
-      .post(`${import.meta.env.VITE_API_URL}/auth/admin`, {
+    api
+      .post(`/admin/login`, {
         email,
         password,
       })
@@ -43,7 +44,7 @@ const LoginPage = () => {
         SetError(undefined);
         SetIsloading(false);
 
-        dispatch(Login(response.data));
+        dispatch(Login(response.data.Token));
       })
       .catch(function (error) {
         SetIsloading(false);
