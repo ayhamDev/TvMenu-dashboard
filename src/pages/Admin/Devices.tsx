@@ -4,20 +4,38 @@ import { AdminMotionProps } from "../../utils/ConfigMotion";
 import { SetName } from "../../store/slice/Page";
 import { useDispatch, useSelector } from "react-redux";
 import useAdminAuth from "../../hooks/useAdminAuth";
-import { Typography, Paper, Box, Stack, Button } from "@mui/material";
+import {
+  Typography,
+  Paper,
+  Box,
+  Stack,
+  IconButton,
+  Badge,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Divider,
+} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useQuery } from "@tanstack/react-query";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import INewDevice from "../../types/INewDevice";
 import Toolbar from "../../components/Admin/Toolbar";
 import moment from "moment";
-import { RootState } from "../../store/Store";
 import GetDevices from "../../api/GetDevices";
 import { useNavigate } from "react-router-dom";
+import ConfirmModal from "../../components/Admin/ConfirmModal";
+import {
+  MoreVertRounded,
+  DeleteRounded,
+  TvRounded,
+  TvOffRounded,
+} from "@mui/icons-material";
+import ICRUD from "../../types/ICrud";
 
 const Devices = () => {
-  const page = useSelector((state: RootState) => state.Page.value);
   const Theme = useTheme();
   const navigate = useNavigate();
   const { VerifyToken, admin } = useAdminAuth();
@@ -26,9 +44,12 @@ const Devices = () => {
   const [endpoint, SetEndPoint] = useState<string>("/");
 
   useLayoutEffect(() => {
-    dispatch(SetName("Devices"));
-    VerifyToken();
+    dispatch(SetName("Menuone | Devices"));
   });
+  const [SelectedRow, setSelectedRow] = useState<object | number[] | undefined>(
+    undefined
+  );
+  const [open, SetOpen] = useState<boolean>(false);
 
   const { status, data } = useQuery<INewDevice[]>({
     queryKey: ["Devices"],
@@ -36,7 +57,24 @@ const Devices = () => {
     refetchInterval: 5000,
     refetchIntervalInBackground: true,
   });
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [method, SetMethod] = useState<ICRUD>("patch");
+  const [ModalTitle, SetModalTitle] = useState<string>("");
+  const [ModalText, SetModalText] = useState<string>("");
+  const QuickActionsOpen = Boolean(anchorEl);
+  const OpenQuickActions = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const CloseQuickActions = () => {
+    setAnchorEl(null);
+  };
+
   const columns: GridColDef[] = [
+    {
+      field: "User_ID",
+      headerName: "User ID",
+      width: 300,
+    },
     {
       field: "Device_ID",
       headerName: "Device ID",
@@ -50,7 +88,6 @@ const Devices = () => {
     {
       field: "Status",
       width: 250,
-      editable: true,
       type: "singleSelect",
       valueOptions: ["Active", "Suspended"],
       renderCell: (params) => {
@@ -128,6 +165,17 @@ const Devices = () => {
 
   return (
     <>
+      <ConfirmModal
+        open={open}
+        SetOpen={SetOpen}
+        data={SelectedRow}
+        setSelections={setSelections}
+        endpoint={endpoint}
+        title={ModalTitle}
+        text={ModalText}
+        method={method}
+        Cachekey={["Devices"]}
+      />
       <motion.div {...AdminMotionProps}>
         <Stack
           direction={"row"}
@@ -135,44 +183,117 @@ const Devices = () => {
           flexWrap={"wrap"}
           gap={Theme.spacing(4)}
         >
-          <Typography variant="h5">{page}</Typography>
-          {Selections.length > 0 ? (
-            <Stack direction={"row"} gap={Theme.spacing(2)} flexWrap={"wrap"}>
-              <Button
-                sx={{
-                  height: "fit-content",
-                }}
-                variant="contained"
-                color="info"
-              >
-                {Selections.length == 1 ? "Active" : "Active All"}
-              </Button>
-              <Button
-                sx={{
-                  height: "fit-content",
-                }}
-                variant="contained"
-                color="warning"
-              >
-                {Selections.length == 1 ? "Suspend" : "Suspend All"}
-              </Button>
-              <Button
-                sx={{
-                  height: "fit-content",
-                }}
-                variant="contained"
-                color="error"
-              >
-                {Selections.length == 1 ? "Delete" : "Delete All"}
-              </Button>
-            </Stack>
-          ) : null}
+          <Typography variant="h5">Devices</Typography>
+          <IconButton id="QuickActions" onClick={OpenQuickActions}>
+            <Badge badgeContent={Selections.length} color="primary">
+              <MoreVertRounded />
+            </Badge>
+          </IconButton>
+          <Menu
+            id="QuickActions"
+            anchorEl={anchorEl}
+            open={QuickActionsOpen}
+            onClose={CloseQuickActions}
+            MenuListProps={{
+              "aria-labelledby": "basic-button",
+            }}
+          >
+            <MenuItem
+              onClick={() => {
+                CloseQuickActions();
+                if (Selections.length == 0) return null;
+                SetMethod("delete");
+                SetEndPoint(`/bulk`);
+                SetOpen(true);
+                setSelectedRow(Selections);
+                SetModalTitle(
+                  `Are You Sure That You Want To ${
+                    Selections.length == 1
+                      ? "Delete This Device"
+                      : "Delete All Of These Devices"
+                  } ?`
+                );
+                SetModalText(
+                  "Deleted devices can not be restored later, that means if you want them back you need to create them from scratch."
+                );
+              }}
+            >
+              <ListItemIcon>
+                <DeleteRounded fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>
+                Delete
+                <span style={{ color: Theme.palette.grey[400] }}>
+                  {" "}
+                  ({Selections.length})
+                </span>
+              </ListItemText>
+            </MenuItem>
+            <Divider />
+            <MenuItem
+              onClick={() => {
+                CloseQuickActions();
+                if (Selections.length == 0) return null;
+
+                SetMethod("patch");
+                SetEndPoint("/bulk?value=Active");
+                SetOpen(true);
+                setSelectedRow(Selections);
+                SetModalTitle(
+                  `Are You Sure That You Want To Activate ${
+                    Selections.length == 1
+                      ? "This Device"
+                      : "All Of These Devices"
+                  } ?`
+                );
+                SetModalText(
+                  "If you make them active they will be able to access the server."
+                );
+              }}
+            >
+              <ListItemText>
+                Change Status To "Active"
+                <span style={{ color: Theme.palette.grey[400] }}>
+                  {" "}
+                  ({Selections.length})
+                </span>
+              </ListItemText>
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                CloseQuickActions();
+                if (Selections.length == 0) return null;
+                SetMethod("patch");
+                SetEndPoint("/bulk?value=Suspended");
+                SetOpen(true);
+                setSelectedRow(Selections);
+                SetModalTitle(
+                  `Are You Sure That You Want To Suspend ${
+                    Selections.length == 1
+                      ? "This Device"
+                      : "All Of These Devices"
+                  }?`
+                );
+                SetModalText(
+                  "If you make them suspended they will not be able to access the server."
+                );
+              }}
+            >
+              <ListItemText>
+                Change Status To "Suspended"
+                <span style={{ color: Theme.palette.grey[400] }}>
+                  {" "}
+                  ({Selections.length})
+                </span>
+              </ListItemText>
+            </MenuItem>
+          </Menu>
         </Stack>
         <Paper
           className="FancyBoxShadow"
           sx={{
             maxWidth: "100%",
-            mt: Theme.spacing(2),
+            mt: Theme.spacing(3),
           }}
         >
           <DataGrid
@@ -180,13 +301,16 @@ const Devices = () => {
               border: 0,
               padding: Theme.spacing(2),
             }}
+            getRowId={(row) => row.Device_ID}
             // @ts-ignore
             columns={columns}
             rows={rows}
-            onRowClick={() => navigate(`/admin/devices/`)}
+            onRowClick={(row) => navigate(`/admin/device/${row.id}`)}
             checkboxSelection
+            rowSelectionModel={Selections}
             disableRowSelectionOnClick={true}
-            onRowSelectionModelChange={(selection) => {
+            // @ts-ignore
+            onRowSelectionModelChange={(selection: number[]) => {
               setSelections(selection);
             }}
             initialState={{
@@ -208,5 +332,4 @@ const Devices = () => {
     </>
   );
 };
-
 export default Devices;

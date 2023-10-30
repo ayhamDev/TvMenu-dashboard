@@ -13,10 +13,22 @@ body,
 .css-h86el7-MuiButtonBase-root-MuiListItemButton-root.Mui-selected {
   background-color: #424242 !important;
 }
+.MuiDataGrid-virtualScroller {
+  min-height: 100px;
+}
 .scrollbar {
   scroll-behavior: smooth;
   overflow-y: auto;
   overflow-x: hidden;
+}
+.MuiDataGrid-cell:focus {
+  outline: none !important;
+}
+.MuiDataGrid-cell:active {
+  outline: none !important;
+}
+.MuiDataGrid-cell {
+  outline: none !important;
 }
 /* width */
 .scrollbar::-webkit-scrollbar {

@@ -36,7 +36,7 @@ const LoginPage = () => {
     const email = emailRef.current?.value;
     const password = passwordRef.current?.value;
     api
-      .post(`/admin/login`, {
+      .post(`/user/login`, {
         email,
         password,
       })

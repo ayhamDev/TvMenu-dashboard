@@ -1,18 +1,18 @@
-import { TvRounded, TvOffRounded, AnalyticsRounded } from "@mui/icons-material";
+import {
+  TvRounded,
+  TvOffRounded,
+  AnalyticsRounded,
+  SpaceDashboard,
+} from "@mui/icons-material";
 import { Box, Container, colors, useTheme } from "@mui/material";
 import React, { useLayoutEffect } from "react";
 import DashboardPart from "../../components/Admin/DashboardPart";
 import isMobile from "is-mobile";
-import useAdminAuth from "../../hooks/useAdminAuth";
 export default function Dashboard({
   children,
 }: {
   children: React.JSX.Element;
 }) {
-  const { VerifyToken } = useAdminAuth();
-  useLayoutEffect(() => {
-    VerifyToken();
-  });
   const SideBarItems = [
     {
       title: "General",
@@ -29,13 +29,18 @@ export default function Dashboard({
       items: [
         {
           label: "Devices",
-          icon: <TvRounded sx={{ color: colors.grey[500] }} />,
-          path: "/admin/devices",
+          icon: <TvRounded sx={{ color: colors.grey[400] }} />,
+          path: "/admin/device",
         },
         {
           label: "New Devices",
-          icon: <TvOffRounded sx={{ color: colors.grey[500] }} />,
+          icon: <TvOffRounded sx={{ color: colors.grey[400] }} />,
           path: "/admin/unregistered",
+        },
+        {
+          label: "Programs",
+          icon: <SpaceDashboard sx={{ color: colors.grey[400] }} />,
+          path: "/admin/program",
         },
       ],
     },

@@ -1,12 +1,11 @@
 import api from "./API";
 
-export default function GetDevices(token: string | undefined, params?: object) {
+export default function GetUsers(token: string | undefined) {
   return api
-    .get("/", {
+    .get("/user", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      params: params,
     })
     .then((res) => res.data);
 }

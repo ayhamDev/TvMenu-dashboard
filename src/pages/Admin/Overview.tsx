@@ -1,20 +1,9 @@
 import { useLayoutEffect } from "react";
 import { motion } from "framer-motion";
 import { AdminMotionProps } from "../../utils/ConfigMotion";
-import { Grid, Typography, useTheme } from "@mui/material";
+import { Typography, useTheme } from "@mui/material";
 import "chart.js/auto";
 import useAdminAuth from "../../hooks/useAdminAuth";
-import { OverviewItemStatus } from "../../components/Admin/OverviewItemStatus";
-import {
-  AccountCircleRounded,
-  Inventory2Rounded,
-  MonetizationOnRounded,
-  ShoppingCartRounded,
-} from "@mui/icons-material";
-import { OverviewSales } from "../../components/Admin/OverviewSales";
-import { OverviewStatus } from "../../components/Admin/OverviewStatus";
-import OverviewProducts from "../../components/Admin/OverviewCustomers";
-import { OverviewOrders } from "../../components/Admin/OverviewOrders";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/Store";
 import { SetName } from "../../store/slice/Page";
@@ -23,10 +12,8 @@ const Overview = () => {
   const dispatch = useDispatch();
   useLayoutEffect(() => {});
   const page = useSelector((state: RootState) => state.Page.value);
-  const { VerifyToken } = useAdminAuth();
   useLayoutEffect(() => {
-    dispatch(SetName("Overview"));
-    VerifyToken();
+    dispatch(SetName("Menuone | Overview"));
   });
   return (
     <motion.div {...AdminMotionProps}>

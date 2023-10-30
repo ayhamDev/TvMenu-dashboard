@@ -13,6 +13,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Dispatch, SetStateAction, useState } from "react";
 import api from "../../api/API";
 import { AxiosError } from "axios";
+import { useNavigate } from "react-router-dom";
 
 const ConfirmModal = ({
   open,
@@ -22,24 +23,35 @@ const ConfirmModal = ({
   title,
   text,
   method = "post",
+  Cachekey,
+  setSelections,
+  redirect,
 }: {
   open: boolean;
   SetOpen: Dispatch<SetStateAction<boolean>>;
+  setSelections?: Dispatch<SetStateAction<number[]>>;
   data: any;
   endpoint: string;
   title: string;
   text: string;
   method: "post" | "get" | "patch" | "delete";
+  Cachekey: any[];
+  redirect?: string;
 }) => {
   const Theme = useTheme();
+
   const [isloading, SetIsloading] = useState<boolean>(false);
   const [Error, SetError] = useState<string>();
   const fullScreen = useMediaQuery(Theme.breakpoints.down("sm"));
   const q = useQueryClient();
-  const handleClose = () => {
+  const navigate = useNavigate();
+  // @ts-ignore
+  const handleClose = (event: Event, reason) => {
+    if (reason == "backdropClick" && isloading) return null;
     SetOpen(false);
     SetError("");
   };
+
   const handleRegister = async () => {
     if (!data) return;
     SetIsloading(true);
@@ -52,8 +64,12 @@ const ConfirmModal = ({
         SetIsloading(false);
         SetOpen(false);
         q.invalidateQueries({
-          queryKey: ["newDevices"],
+          queryKey: Cachekey,
         });
+        if (typeof setSelections == "function") {
+          setSelections([]);
+        }
+        if (redirect) return navigate(redirect);
       }
     } catch (err) {
       if (err instanceof AxiosError) {
@@ -83,7 +99,7 @@ const ConfirmModal = ({
         <DialogContentText>{Error}</DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button variant="outlined" onClick={handleClose}>
+        <Button disabled={isloading} variant="outlined" onClick={handleClose}>
           Cancel
         </Button>
         <Button
@@ -92,7 +108,7 @@ const ConfirmModal = ({
           autoFocus
           disabled={isloading}
         >
-          {isloading ? <CircularProgress size={"28px"} /> : "Register"}
+          {isloading ? <CircularProgress size={"28px"} /> : "Confirm"}
         </Button>
       </DialogActions>
     </Dialog>

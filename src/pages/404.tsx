@@ -4,8 +4,15 @@ import Error404 from "../assets/img/error-404.png";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AdminMotionProps } from "../utils/ConfigMotion";
+import { useDispatch } from "react-redux";
+import { SetName } from "../store/slice/Page";
+import { useLayoutEffect } from "react";
 
 const Page404 = () => {
+  const Dispatch = useDispatch();
+  useLayoutEffect(() => {
+    Dispatch(SetName("Menuone | Not Found"));
+  }, []);
   return (
     <Box
       component="main"
