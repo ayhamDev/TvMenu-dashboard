@@ -9,5 +9,7 @@ interface IDevice {
   Device_ID: string;
   Device_Token: string;
   Last_Online_hit: Date | null;
+  Device_Name: string;
+  Device_Note: string;
 }
 export default IDevice;

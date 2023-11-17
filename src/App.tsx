@@ -5,9 +5,22 @@ import GuardedRoute from "./components/GuardedRoute";
 import React, { Suspense } from "react";
 
 import LoadingSpinner from "./components/LoadingSpinner";
+import { Toaster } from "react-hot-toast";
+
+import { HashLoader } from "react-spinners";
+import { Box } from "@mui/material";
+import Page404 from "./pages/404";
+import useVerifyToken from "./hooks/useVerifyToken";
 
 // Pages
 const Overview = React.lazy(() => import("./pages/Admin/Overview"));
+
+const Users = React.lazy(() => import("./pages/Admin/Users"));
+const UserDetails = React.lazy(
+  () => import("./pages/Admin/Details/User.details")
+);
+const UserCreate = React.lazy(() => import("./pages/Admin/Create/User.create"));
+
 const Dashboard = React.lazy(() => import("./pages/Admin/Dashboard"));
 const Login = React.lazy(() => import("./pages/Admin/Login"));
 
@@ -25,24 +38,36 @@ const CreateProgram = React.lazy(
 const ProgramDetails = React.lazy(
   () => import("./pages/Admin/Details/Programs.details")
 );
-import { Toaster } from "react-hot-toast";
 
-import { AnimatePresence } from "framer-motion";
-import { HashLoader } from "react-spinners";
-import { Box } from "@mui/material";
-import Page404 from "./pages/404";
-import useVerifyToken from "./hooks/useVerifyToken";
-
+const Preview = React.lazy(() => import("./pages/Admin/Preview"));
 const App = () => {
   const adminAuth = useSelector((state: RootState) => state.adminAuth.value);
   useVerifyToken();
   return (
-    <AnimatePresence>
+    <>
       <Toaster position="top-center" />
       <Routes>
         {/* Client */}
 
         <Route path="/" element={<Navigate to={"/admin"} replace />}></Route>
+        {/* Preview */}
+        <Route
+          element={
+            <GuardedRoute
+              redirectRoute="/admin/login"
+              isRouteAccessible={adminAuth.isAuthenticated}
+            />
+          }
+        >
+          <Route
+            path="/preview"
+            element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <Preview />
+              </Suspense>
+            }
+          />
+        </Route>
         {/* admin */}
 
         <Route
@@ -60,6 +85,30 @@ const App = () => {
             element={
               <Suspense fallback={<LoadingSpinner />}>
                 <Overview />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/admin/user"
+            element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <Users />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/admin/user/new"
+            element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <UserCreate />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/admin/user/:id"
+            element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <UserDetails />
               </Suspense>
             }
           />
@@ -149,7 +198,7 @@ const App = () => {
         </Route>
         <Route path="*" element={<Page404 />}></Route>
       </Routes>
-    </AnimatePresence>
+    </>
   );
 };
 

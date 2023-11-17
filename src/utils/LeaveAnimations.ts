@@ -15,8 +15,6 @@ const LeaveAnimations: TypeLeaveAnimations[] = [
   "fadeOutLeftBig",
   "fadeOutRight",
   "fadeOutRightBig",
-  "flipOutX",
-  "flipOutY",
   "lightSpeedOut",
   "slideOutDown",
   "slideOutUp",

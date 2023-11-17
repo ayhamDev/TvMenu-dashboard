@@ -1,41 +1,45 @@
-import { motion } from "framer-motion";
-import { useCallback, useLayoutEffect, useState } from "react";
-import { AdminMotionProps } from "../../utils/ConfigMotion";
-import { SetName } from "../../store/slice/Page";
-import { useDispatch, useSelector } from "react-redux";
-import useAdminAuth from "../../hooks/useAdminAuth";
 import {
-  Typography,
-  Paper,
-  Stack,
+  AddRounded,
+  DeleteRounded,
+  MoreVertRounded,
+} from "@mui/icons-material";
+import {
   Badge,
+  Box,
+  Divider,
   IconButton,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
-  Box,
-  Divider,
+  Paper,
+  Stack,
+  Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { useQuery } from "@tanstack/react-query";
-import LoadingSpinner from "../../components/LoadingSpinner";
-import GetNewDevices from "../../api/GetNewDevices";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import INewDevice from "../../types/INewDevice";
-import Toolbar from "../../components/Admin/Toolbar";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import moment from "moment";
-import ConfirmModal from "../../components/Admin/ConfirmModal";
-import {
-  MoreVertRounded,
-  LockOpenRounded,
-  DeleteRounded,
-  AddRounded,
-} from "@mui/icons-material";
-import GetPrograms from "../../api/GetPrograms";
-import ICRUD from "../../types/ICrud";
-import { useNavigate } from "react-router-dom";
-const Programs = () => {
+import { useLayoutEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { Navigate, useNavigate } from "react-router-dom";
+import GetDevicesById from "../../../api/GetDeviceById";
+import GetPrograms from "../../../api/GetPrograms";
+import Toolbar from "../../../components/Admin/Toolbar";
+import LoadingSpinner from "../../../components/LoadingSpinner";
+import useAdminAuth from "../../../hooks/useAdminAuth";
+import { SetName } from "../../../store/slice/Page";
+import ICRUD from "../../../types/ICrud";
+import IDevice from "../../../types/IDevice";
+import IProgram from "../../../types/IProgram";
+import { AdminMotionProps } from "../../../utils/ConfigMotion";
+import ConfirmModal from "../ConfirmModal";
+
+const ProgramsPanel = (props: {
+  User_ID?: string | undefined;
+  Device_ID?: string | undefined;
+}) => {
   // Row Selection State
   const ProgramTypes = ["Web", "Image", "Video"];
 
@@ -51,13 +55,33 @@ const Programs = () => {
   const dispatch = useDispatch();
 
   useLayoutEffect(() => {
-    dispatch(SetName("Menuone | Programs"));
+    dispatch(SetName("Menuone | User Programs"));
   });
-  const { status, data } = useQuery<INewDevice[]>({
-    queryKey: ["Programs"],
-    queryFn: () => GetPrograms(admin?.accessToken),
-    refetchInterval: 5000,
-    refetchIntervalInBackground: true,
+  const { status, data } = useQuery<IProgram[]>({
+    queryKey: [
+      "Programs",
+      props.Device_ID
+        ? { Device_ID: props.Device_ID }
+        : { User_ID: props.User_ID },
+    ],
+    queryFn: () =>
+      GetPrograms(
+        admin?.accessToken,
+        props.Device_ID
+          ? {
+              Device_ID: props.Device_ID,
+            }
+          : { User_ID: props.User_ID }
+      ),
+  });
+  const {
+    data: Device,
+    error,
+    isLoading,
+    isFetching,
+  } = useQuery<IDevice>({
+    queryKey: ["Devices", props.Device_ID],
+    queryFn: () => GetDevicesById(admin?.accessToken, props.Device_ID),
   });
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [ModalTitle, SetModalTitle] = useState<string>(
@@ -85,11 +109,6 @@ const Programs = () => {
       type: "number",
       align: "left",
       width: 200,
-    },
-    {
-      field: "User_ID",
-      headerName: "User ID",
-      width: 300,
     },
     {
       field: "Device_Token",
@@ -178,6 +197,8 @@ const Programs = () => {
 
   if (status == "loading") return <LoadingSpinner />;
   if (status == "error") return <LoadingSpinner />;
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <Navigate to={"/admin/device"} replace={true} />;
   const rows = Array.isArray(data) ? data : [];
 
   return (
@@ -191,16 +212,15 @@ const Programs = () => {
         title={ModalTitle}
         text={ModalText}
         method={Method}
-        Cachekey={["Programs"]}
+        Cachekey={["Programs", { User_ID: props.User_ID }]}
       />
       <motion.div {...AdminMotionProps}>
         <Stack
           direction={"row"}
-          justifyContent={"space-between"}
+          justifyContent={"flex-end"}
           flexWrap={"wrap"}
           gap={Theme.spacing(4)}
         >
-          <Typography variant="h5">Programs</Typography>
           <IconButton id="QuickActions" onClick={OpenQuickActions}>
             <Badge badgeContent={Selections.length} color="primary">
               <MoreVertRounded />
@@ -212,7 +232,7 @@ const Programs = () => {
             open={QuickActionsOpen}
             onClose={CloseQuickActions}
             MenuListProps={{
-              "aria-labelledby": "basic-button",
+              "aria-labelledby": "QuickActions",
             }}
           >
             <MenuItem
@@ -407,7 +427,11 @@ const Programs = () => {
             <Divider />
             <MenuItem
               onClick={() => {
-                navigate("/admin/program/new");
+                navigate(
+                  `/admin/program/new?User_ID=${
+                    props.User_ID ? props.User_ID : Device.User_ID
+                  }${props.Device_ID ? `&Device_ID=${props.Device_ID}` : ""}`
+                );
               }}
             >
               <ListItemIcon>
@@ -443,6 +467,9 @@ const Programs = () => {
             }}
             rowSelectionModel={Selections}
             initialState={{
+              columns: {
+                columnVisibilityModel: {},
+              },
               sorting: {
                 sortModel: [{ field: "Start_DateTime", sort: "desc" }],
               },
@@ -462,4 +489,4 @@ const Programs = () => {
   );
 };
 
-export default Programs;
+export default ProgramsPanel;

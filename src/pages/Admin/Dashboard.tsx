@@ -1,13 +1,14 @@
 import {
-  TvRounded,
-  TvOffRounded,
   AnalyticsRounded,
+  PersonRounded,
   SpaceDashboard,
+  TvOffRounded,
+  TvRounded,
 } from "@mui/icons-material";
 import { Box, Container, colors, useTheme } from "@mui/material";
-import React, { useLayoutEffect } from "react";
-import DashboardPart from "../../components/Admin/DashboardPart";
 import isMobile from "is-mobile";
+import React from "react";
+import DashboardPart from "../../components/Admin/DashboardPart";
 export default function Dashboard({
   children,
 }: {
@@ -21,6 +22,11 @@ export default function Dashboard({
           label: "Overview",
           icon: <AnalyticsRounded sx={{ color: colors.grey[500] }} />,
           path: "/admin",
+        },
+        {
+          label: "Users",
+          icon: <PersonRounded sx={{ color: colors.grey[500] }} />,
+          path: "/admin/user",
         },
       ],
     },

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useLayoutEffect, useState } from "react";
 import { AdminMotionProps } from "../../utils/ConfigMotion";
 import { SetName } from "../../store/slice/Page";
@@ -56,7 +56,7 @@ const Programs = () => {
   const { status, data } = useQuery<INewDevice[]>({
     queryKey: ["Programs"],
     queryFn: () => GetPrograms(admin?.accessToken),
-    refetchInterval: 5000,
+    refetchInterval: 10000,
     refetchIntervalInBackground: true,
   });
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);

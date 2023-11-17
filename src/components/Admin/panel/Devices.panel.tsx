@@ -1,66 +1,69 @@
-import { motion } from "framer-motion";
-import { useLayoutEffect, useState } from "react";
-import { AdminMotionProps } from "../../utils/ConfigMotion";
-import { SetName } from "../../store/slice/Page";
-import { useDispatch, useSelector } from "react-redux";
-import useAdminAuth from "../../hooks/useAdminAuth";
+import { DeleteRounded, MoreVertRounded } from "@mui/icons-material";
 import {
-  Typography,
-  Paper,
-  Box,
-  Stack,
-  IconButton,
   Badge,
+  Box,
+  Divider,
+  IconButton,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
-  Divider,
+  Paper,
+  Stack,
+  Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { useQuery } from "@tanstack/react-query";
-import LoadingSpinner from "../../components/LoadingSpinner";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import INewDevice from "../../types/INewDevice";
-import Toolbar from "../../components/Admin/Toolbar";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import moment from "moment";
-import GetDevices from "../../api/GetDevices";
-import { useNavigate } from "react-router-dom";
-import ConfirmModal from "../../components/Admin/ConfirmModal";
-import {
-  MoreVertRounded,
-  DeleteRounded,
-  TvRounded,
-  TvOffRounded,
-} from "@mui/icons-material";
-import ICRUD from "../../types/ICrud";
+import { useLayoutEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { Navigate, useNavigate } from "react-router-dom";
+import GetDevices from "../../../api/GetDevices";
+import useAdminAuth from "../../../hooks/useAdminAuth";
+import { SetName } from "../../../store/slice/Page";
+import ICRUD from "../../../types/ICrud";
+import IDevice from "../../../types/IDevice";
+import { AdminMotionProps } from "../../../utils/ConfigMotion";
+import LoadingSpinner from "../../LoadingSpinner";
+import ConfirmModal from "../ConfirmModal";
+import Toolbar from "../Toolbar";
 
-const Devices = () => {
-  const Theme = useTheme();
-  const navigate = useNavigate();
-  const { VerifyToken, admin } = useAdminAuth();
-  const dispatch = useDispatch();
+const DevicesPanel = (props: {
+  User_ID?: string | undefined;
+  Device_ID?: string | undefined;
+}) => {
+  // Row Selection State
   const [Selections, setSelections] = useState<number[]>([]);
   const [endpoint, SetEndPoint] = useState<string>("/");
 
-  useLayoutEffect(() => {
-    dispatch(SetName("Menuone | Devices"));
-  });
   const [SelectedRow, setSelectedRow] = useState<object | number[] | undefined>(
     undefined
   );
   const [open, SetOpen] = useState<boolean>(false);
+  const Theme = useTheme();
+  const { admin } = useAdminAuth();
+  const dispatch = useDispatch();
 
-  const { status, data } = useQuery<INewDevice[]>({
-    queryKey: ["Devices"],
-    queryFn: () => GetDevices(admin?.accessToken),
-    refetchInterval: 10000,
-    refetchIntervalInBackground: true,
+  useLayoutEffect(() => {
+    dispatch(SetName("Menuone | User Devices"));
+  });
+  const { data, error, isLoading, isFetching } = useQuery<IDevice>({
+    queryKey: ["Devices", { User_ID: props.User_ID }],
+    queryFn: () =>
+      GetDevices(admin?.accessToken, {
+        User_ID: props.User_ID,
+      }),
   });
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [method, SetMethod] = useState<ICRUD>("patch");
-  const [ModalTitle, SetModalTitle] = useState<string>("");
-  const [ModalText, SetModalText] = useState<string>("");
+  const [ModalTitle, SetModalTitle] = useState<string>(
+    "Are You Sure You Want To Register This Device ?"
+  );
+  const [ModalText, SetModalText] = useState<string>(
+    `This Device Has Requested To Be Registered, If You Want To Confirm That This Device Should Be Registered Click on Register, If Not Click on Cancel.`
+  );
+  const [Method, SetMethod] = useState<ICRUD>("delete");
   const QuickActionsOpen = Boolean(anchorEl);
   const OpenQuickActions = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -68,13 +71,9 @@ const Devices = () => {
   const CloseQuickActions = () => {
     setAnchorEl(null);
   };
+  const navigate = useNavigate();
 
   const columns: GridColDef[] = [
-    {
-      field: "User_ID",
-      headerName: "User ID",
-      width: 300,
-    },
     {
       field: "Device_ID",
       headerName: "Device ID",
@@ -160,9 +159,8 @@ const Devices = () => {
           : moment(param.value).format("lll"),
     },
   ];
-
-  if (status == "loading") return <LoadingSpinner />;
-  if (status == "error") return <LoadingSpinner />;
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <Navigate to={"/admin/device"} replace={true} />;
   const rows = Array.isArray(data) ? data : [];
 
   return (
@@ -175,17 +173,16 @@ const Devices = () => {
         endpoint={endpoint}
         title={ModalTitle}
         text={ModalText}
-        method={method}
-        Cachekey={["Devices"]}
+        method={Method}
+        Cachekey={["Devices", { User_ID: props.User_ID }]}
       />
       <motion.div {...AdminMotionProps}>
         <Stack
           direction={"row"}
-          justifyContent={"space-between"}
+          justifyContent={"flex-end"}
           flexWrap={"wrap"}
           gap={Theme.spacing(4)}
         >
-          <Typography variant="h5">Devices</Typography>
           <IconButton id="QuickActions" onClick={OpenQuickActions}>
             <Badge badgeContent={Selections.length} color="primary">
               <MoreVertRounded />
@@ -334,4 +331,5 @@ const Devices = () => {
     </>
   );
 };
-export default Devices;
+
+export default DevicesPanel;

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useLayoutEffect, useState } from "react";
 import { AdminMotionProps } from "../../utils/ConfigMotion";
 import { SetName } from "../../store/slice/Page";
@@ -32,10 +32,12 @@ import {
   DeleteRounded,
   TvRounded,
   TvOffRounded,
+  Add,
 } from "@mui/icons-material";
 import ICRUD from "../../types/ICrud";
+import GetUsers from "../../api/GetUsers";
 
-const Devices = () => {
+const Users = () => {
   const Theme = useTheme();
   const navigate = useNavigate();
   const { VerifyToken, admin } = useAdminAuth();
@@ -44,7 +46,7 @@ const Devices = () => {
   const [endpoint, SetEndPoint] = useState<string>("/");
 
   useLayoutEffect(() => {
-    dispatch(SetName("Menuone | Devices"));
+    dispatch(SetName("Menuone | Users"));
   });
   const [SelectedRow, setSelectedRow] = useState<object | number[] | undefined>(
     undefined
@@ -52,8 +54,8 @@ const Devices = () => {
   const [open, SetOpen] = useState<boolean>(false);
 
   const { status, data } = useQuery<INewDevice[]>({
-    queryKey: ["Devices"],
-    queryFn: () => GetDevices(admin?.accessToken),
+    queryKey: ["Users"],
+    queryFn: () => GetUsers(admin?.accessToken),
     refetchInterval: 10000,
     refetchIntervalInBackground: true,
   });
@@ -73,23 +75,19 @@ const Devices = () => {
     {
       field: "User_ID",
       headerName: "User ID",
-      width: 300,
+      width: 350,
     },
     {
-      field: "Device_ID",
-      headerName: "Device ID",
-      width: 250,
+      field: "email",
+      headerName: "Email",
+      width: 350,
     },
+
     {
-      field: "Device_Token",
-      headerName: "Device Token",
-      width: 200,
-    },
-    {
-      field: "Status",
-      width: 250,
+      field: "Role",
+      width: 350,
       type: "singleSelect",
-      valueOptions: ["Active", "Suspended"],
+      valueOptions: ["Admin", "Client"],
       renderCell: (params) => {
         return (
           <Box
@@ -97,7 +95,7 @@ const Devices = () => {
               py: Theme.spacing(1),
               px: Theme.spacing(2),
               borderRadius: "24px",
-              color: params.value == "Active" ? "green" : "red",
+              color: params.value == "Client" ? "green" : "red",
               background: Theme.palette.grey[300],
             }}
           >
@@ -106,65 +104,17 @@ const Devices = () => {
               fontWeight={"bold"}
               textTransform={"uppercase"}
             >
-              {params.value == "Active" ? "Active" : "Suspended"}
+              {params.value == "Client" ? "Client" : "Admin"}
             </Typography>
           </Box>
         );
       },
-    },
-    {
-      field: "connectionID",
-      headerName: "Connection",
-      width: 250,
-      type: "singleSelect",
-      valueOptions: ["Online", "Offline"],
-      valueGetter: (params) => {
-        return params.value ? "Online" : "Offline";
-      },
-      renderCell: (params) => {
-        return (
-          <Box
-            sx={{
-              py: Theme.spacing(1),
-              px: Theme.spacing(2),
-              borderRadius: "24px",
-              background: params.value == "Online" ? "green" : "red",
-              color: Theme.palette.grey[100],
-            }}
-          >
-            <Typography
-              fontSize={15}
-              fontWeight={"bold"}
-              textTransform={"uppercase"}
-            >
-              {params.value == "Online" ? "Online" : "Offline"}
-            </Typography>
-          </Box>
-        );
-      },
-    },
-    {
-      field: "Last_Online_hit",
-      headerName: "Last Online",
-      type: "date",
-      width: 250,
-      valueGetter: (param) =>
-        param.row.connectionID
-          ? Date.now()
-          : param.value == "null" || param.value == null
-          ? null
-          : new Date(param.value),
-      valueFormatter: (param) =>
-        param.value == "null" || param.value == null
-          ? "N/A"
-          : moment(param.value).format("lll"),
     },
   ];
 
   if (status == "loading") return <LoadingSpinner />;
   if (status == "error") return <LoadingSpinner />;
   const rows = Array.isArray(data) ? data : [];
-
   return (
     <>
       <ConfirmModal
@@ -176,7 +126,7 @@ const Devices = () => {
         title={ModalTitle}
         text={ModalText}
         method={method}
-        Cachekey={["Devices"]}
+        Cachekey={["Users"]}
       />
       <motion.div {...AdminMotionProps}>
         <Stack
@@ -185,7 +135,7 @@ const Devices = () => {
           flexWrap={"wrap"}
           gap={Theme.spacing(4)}
         >
-          <Typography variant="h5">Devices</Typography>
+          <Typography variant="h5">Users</Typography>
           <IconButton id="QuickActions" onClick={OpenQuickActions}>
             <Badge badgeContent={Selections.length} color="primary">
               <MoreVertRounded />
@@ -205,18 +155,18 @@ const Devices = () => {
                 CloseQuickActions();
                 if (Selections.length == 0) return null;
                 SetMethod("delete");
-                SetEndPoint(`/bulk`);
+                SetEndPoint(`/user/bulk`);
                 SetOpen(true);
                 setSelectedRow(Selections);
                 SetModalTitle(
                   `Are You Sure That You Want To ${
                     Selections.length == 1
-                      ? "Delete This Device"
-                      : "Delete All Of These Devices"
+                      ? "Delete This User"
+                      : "Delete All Of These Users"
                   } ?`
                 );
                 SetModalText(
-                  "Deleted devices can not be restored later, that means if you want them back you need to create them from scratch."
+                  "Deleted Users can not be restored later, that means if you want them back you need to create."
                 );
               }}
             >
@@ -234,60 +184,13 @@ const Devices = () => {
             <Divider />
             <MenuItem
               onClick={() => {
-                CloseQuickActions();
-                if (Selections.length == 0) return null;
-
-                SetMethod("patch");
-                SetEndPoint("/bulk?value=Active");
-                SetOpen(true);
-                setSelectedRow(Selections);
-                SetModalTitle(
-                  `Are You Sure That You Want To Activate ${
-                    Selections.length == 1
-                      ? "This Device"
-                      : "All Of These Devices"
-                  } ?`
-                );
-                SetModalText(
-                  "If you make them active they will be able to access the server."
-                );
+                navigate("/admin/user/new");
               }}
             >
-              <ListItemText>
-                Change Status To "Active"
-                <span style={{ color: Theme.palette.grey[400] }}>
-                  {" "}
-                  ({Selections.length})
-                </span>
-              </ListItemText>
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                CloseQuickActions();
-                if (Selections.length == 0) return null;
-                SetMethod("patch");
-                SetEndPoint("/bulk?value=Suspended");
-                SetOpen(true);
-                setSelectedRow(Selections);
-                SetModalTitle(
-                  `Are You Sure That You Want To Suspend ${
-                    Selections.length == 1
-                      ? "This Device"
-                      : "All Of These Devices"
-                  }?`
-                );
-                SetModalText(
-                  "If you make them suspended they will not be able to access the server."
-                );
-              }}
-            >
-              <ListItemText>
-                Change Status To "Suspended"
-                <span style={{ color: Theme.palette.grey[400] }}>
-                  {" "}
-                  ({Selections.length})
-                </span>
-              </ListItemText>
+              <ListItemIcon>
+                <Add fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Create User</ListItemText>
             </MenuItem>
           </Menu>
         </Stack>
@@ -303,11 +206,11 @@ const Devices = () => {
               border: 0,
               padding: Theme.spacing(2),
             }}
-            getRowId={(row) => row.Device_ID}
+            getRowId={(row) => row.User_ID}
             // @ts-ignore
             columns={columns}
             rows={rows}
-            onRowClick={(row) => navigate(`/admin/device/${row.id}`)}
+            onRowClick={(row) => navigate(`/admin/user/${row.id}`)}
             checkboxSelection
             rowSelectionModel={Selections}
             disableRowSelectionOnClick={true}
@@ -317,7 +220,7 @@ const Devices = () => {
             }}
             initialState={{
               sorting: {
-                sortModel: [{ field: "Last_Online_hit", sort: "desc" }],
+                sortModel: [{ field: "email", sort: "asc" }],
               },
               pagination: {
                 paginationModel: { page: 0, pageSize: 10 },
@@ -334,4 +237,4 @@ const Devices = () => {
     </>
   );
 };
-export default Devices;
+export default Users;

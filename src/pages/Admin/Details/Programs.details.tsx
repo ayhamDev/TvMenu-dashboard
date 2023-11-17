@@ -13,6 +13,7 @@ import {
   Checkbox,
   CircularProgress,
   FormControl,
+  FormControlLabel,
   IconButton,
   InputLabel,
   MenuItem,
@@ -21,6 +22,7 @@ import {
   SelectChangeEvent,
   Stack,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -28,7 +30,7 @@ import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 
 import { useDispatch } from "react-redux";
 import { SetName } from "../../../store/slice/Page";
-import { ArrowBackIosRounded } from "@mui/icons-material";
+import { ArrowBackIosRounded, Visibility, VpnLock } from "@mui/icons-material";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import IUser from "../../../types/IUser";
 import { useQuery } from "@tanstack/react-query";
@@ -80,6 +82,8 @@ const ProgramDetails = () => {
   const Duration = useRef<HTMLInputElement | null>(null);
   const Loop = useRef<HTMLInputElement | null>(null);
 
+  const [AlwaysOn, SetAlwaysOn] = useState<boolean>(false);
+
   const [ProgramType, SetProgramType] = useState<number>(1);
   const [ProgramStatus, SetProgramStatus] = useState<StatusType>("Active");
   const [UsersOpen, SetUsersOpen] = useState<boolean>(false);
@@ -88,8 +92,8 @@ const ProgramDetails = () => {
   const [DevicesOptions, SetDevicesOptions] = useState<readonly IDevice[]>([]);
   const [DevicesSelected, SetDevicesSelected] = useState<IDevice[]>([]);
 
-  const [StartDateTime, SetStartDateTime] = useState<number | null>(null);
-  const [EndDateTime, SetEndDateTime] = useState<number | null>(null);
+  const [StartDateTime, SetStartDateTime] = useState<string | null>(null);
+  const [EndDateTime, SetEndDateTime] = useState<string | null>(null);
 
   const [openEnterAnimation, SetOpenEnterAnimation] = useState<boolean>(false);
   const [EnterAnimation, SetEnterAnimation] =
@@ -126,21 +130,23 @@ const ProgramDetails = () => {
     Start_DateTime: StartDateTime,
     End_DateTime: EndDateTime,
     // @ts-ignore
-    Program_Duration:
-      Duration_Unit == "Seconds"
-        ? // @ts-ignore
-          Number(Duration.current?.value)
-        : Duration_Unit == "Minute"
-        ? Number(Duration.current?.value) * 60
-        : Number(Duration.current?.value) * 60 * 60,
+    Program_Duration: !AlwaysOn
+      ? 0
+      : Duration_Unit == "Seconds"
+      ? // @ts-ignore
+        Number(Duration.current?.value)
+      : Duration_Unit == "Minute"
+      ? Number(Duration.current?.value) * 60
+      : Number(Duration.current?.value) * 60 * 60,
     // @ts-ignore
-    Next_Loop_Seconds:
-      Duration_Unit == "Seconds"
-        ? // @ts-ignore
-          Number(Loop.current?.value)
-        : Loop_Unit == "Minute"
-        ? Number(Loop.current?.value) * 60
-        : Number(Loop.current?.value) * 60 * 60,
+    Next_Loop_Seconds: !AlwaysOn
+      ? 0
+      : Duration_Unit == "Seconds"
+      ? // @ts-ignore
+        Number(Loop.current?.value)
+      : Loop_Unit == "Minute"
+      ? Number(Loop.current?.value) * 60
+      : Number(Loop.current?.value) * 60 * 60,
     Program_Transition: EnterAnimation,
     Program_Transition_End: LeaveAnimation,
   });
@@ -153,6 +159,7 @@ const ProgramDetails = () => {
   const { data, isLoading, error } = useQuery<IProgram>({
     queryKey: ["Programs", id],
     queryFn: () => GetProgramById(admin.accessToken, id),
+    refetchOnWindowFocus: false,
   });
   const {
     data: Users,
@@ -216,29 +223,31 @@ const ProgramDetails = () => {
         Start_DateTime: StartDateTime,
         End_DateTime: EndDateTime,
         // @ts-ignore
-        Program_Duration:
-          Duration_Unit == "Seconds"
-            ? // @ts-ignore
-              Number(Duration.current?.value)
-            : Duration_Unit == "Minute"
-            ? Number(Duration.current?.value) * 60
-            : Number(Duration.current?.value) * 60 * 60,
+        Program_Duration: !AlwaysOn
+          ? 0
+          : Duration_Unit == "Seconds"
+          ? // @ts-ignore
+            Number(Duration.current?.value)
+          : Duration_Unit == "Minute"
+          ? Number(Duration.current?.value) * 60
+          : Number(Duration.current?.value) * 60 * 60,
         // @ts-ignore
-        Next_Loop_Seconds:
-          Loop_Unit == "Seconds"
-            ? // @ts-ignore
-              Number(Loop.current?.value)
-            : Loop_Unit == "Minute"
-            ? Number(Loop.current?.value) * 60
-            : Number(Loop.current?.value) * 60 * 60,
+        Next_Loop_Seconds: !AlwaysOn
+          ? 0
+          : Loop_Unit == "Seconds"
+          ? // @ts-ignore
+            Number(Loop.current?.value)
+          : Loop_Unit == "Minute"
+          ? Number(Loop.current?.value) * 60
+          : Number(Loop.current?.value) * 60 * 60,
         Program_Transition: EnterAnimation,
         Program_Transition_End: LeaveAnimation,
       });
+
       if (
         !DeviceToken.current?.value ||
         !User?.User_ID ||
         !ProgramName.current?.value ||
-        !ProgramNotes.current?.value ||
         !ProgramType ||
         !ProgramStatus ||
         !XRef.current?.value ||
@@ -248,12 +257,12 @@ const ProgramDetails = () => {
         !LayerNumber.current?.value ||
         !StartDateTime ||
         !EndDateTime ||
-        !Duration.current?.value ||
-        !Loop.current?.value ||
+        (AlwaysOn && !Number(Duration.current?.value || "0")) ||
+        (AlwaysOn && !Number(Loop.current?.value || "0")) ||
         !EnterAnimation ||
         !LeaveAnimation
       )
-        return toast.error("Error: Please Fill All The Empty Fields.", {});
+        return toast.error("Please Fill All The Required Fields", {});
       SetOpen(true);
     } catch (err) {
       console.log(err);
@@ -289,6 +298,14 @@ const ProgramDetails = () => {
       // @ts-ignore
       Height.current.value = data.Program_H.replace(/%/g, "") as string;
       LayerNumber.current.value = data.Program_Layer_Number as string;
+      SetAlwaysOn(
+        !data.Program_Duration ||
+          //@ts-ignore
+          data.Program_Duration == 0 ||
+          data.Program_Duration == "0"
+          ? false
+          : true
+      );
       //@ts-ignore
       Duration.current.value =
         Number(data.Program_Duration) >= 3600
@@ -349,15 +366,16 @@ const ProgramDetails = () => {
         ) || []
       );
       // @ts-ignore
-      SetStartDateTime(new Date(data.Start_DateTime).getTime());
+      SetStartDateTime(data.Start_DateTime);
       // @ts-ignore
-      SetEndDateTime(new Date(data.End_DateTime).getTime());
+      SetEndDateTime(data.End_DateTime);
     }
   }, [data, Devices]);
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <Navigate to={"/admin/program"} replace />;
   if (!data) return <Navigate to={"/admin/program"} replace />;
+
   return (
     <>
       <ConfirmModal
@@ -381,7 +399,7 @@ const ProgramDetails = () => {
               width: "50px",
               height: "50px",
             }}
-            onClick={() => navigate("/admin/program")}
+            onClick={() => history.back()}
           >
             <ArrowBackIosRounded />
           </IconButton>
@@ -397,17 +415,42 @@ const ProgramDetails = () => {
           }}
         >
           <Stack gap={Theme.spacing(3)}>
-            <Typography variant="h6">General</Typography>
+            <Stack
+              direction={"row"}
+              alignItems={"center"}
+              justifyContent={"space-between"}
+            >
+              <Typography variant="h6">General</Typography>
+              <Tooltip title="Preview">
+                <IconButton
+                  onClick={() =>
+                    navigate(
+                      `/preview?${
+                        data.User_ID ? `User_ID=${data.User_ID}` : ""
+                      }${
+                        data.Program_Row_Number
+                          ? `&Program_Row_Number=${data.Program_Row_Number}`
+                          : ""
+                      }`
+                    )
+                  }
+                  color="primary"
+                  size="large"
+                >
+                  <Visibility />
+                </IconButton>
+              </Tooltip>
+            </Stack>
             <TextField
               inputRef={ProgramName}
-              label="Program Name"
+              label="Program Name*"
               placeholder="E.g Primary Menu"
               error={FormSubmited ? (Form.Program_Name ? false : true) : false}
               helperText={
                 FormSubmited
                   ? Form.Program_Name
                     ? false
-                    : "Program Name Cant be Empty"
+                    : "Program Name Is Required Field"
                   : false
               }
             />
@@ -417,14 +460,6 @@ const ProgramDetails = () => {
               placeholder="Notes..."
               rows={4}
               multiline
-              error={FormSubmited ? (Form.Program_Note ? false : true) : false}
-              helperText={
-                FormSubmited
-                  ? Form.Program_Note
-                    ? false
-                    : "Program Notes Cant be Empty"
-                  : false
-              }
             />
             <Autocomplete
               sx={{
@@ -443,8 +478,6 @@ const ProgramDetails = () => {
                 option.User_ID === value.User_ID
               }
               onChange={(e, value) => {
-                // console.log(DevicesSelected[0]?.User_ID != value?.User_ID);
-
                 if (DevicesSelected[0]?.User_ID != value?.User_ID) {
                   SetDevicesSelected([]);
                 }
@@ -466,7 +499,7 @@ const ProgramDetails = () => {
                       : false
                   }
                   {...params}
-                  label="Select a Client"
+                  label="Select a Client*"
                   InputProps={{
                     ...params.InputProps,
                     endAdornment: (
@@ -504,7 +537,7 @@ const ProgramDetails = () => {
                 <TextField
                   {...params}
                   label={Devices?.length == 0 ? "No Devices" : "Choose Devices"}
-                  placeholder="Choose Devices"
+                  placeholder="Client Devices..."
                   InputProps={{
                     ...params.InputProps,
                     endAdornment: (
@@ -521,26 +554,26 @@ const ProgramDetails = () => {
             />
             <TextField
               inputRef={DeviceToken}
-              label="Device Token"
+              label="Device Token*"
               placeholder="Token..."
               error={FormSubmited ? (Form.Device_Token ? false : true) : false}
               helperText={
                 FormSubmited
                   ? Form.Device_Token
                     ? false
-                    : "Device Token Cant Be Empty"
+                    : "Device Token Is Required Field"
                   : false
               }
             />
             <Typography variant="h6">Program</Typography>
             <FormControl fullWidth>
-              <InputLabel id="program-type-select">Program Type</InputLabel>
+              <InputLabel id="program-type-select">Program Type*</InputLabel>
               <Select
                 labelId="program-type-select"
                 id="demo-simple-select"
                 // @ts-ignore
                 value={ProgramType || ""}
-                label="Program Type"
+                label="Program Type*"
                 onChange={(event: SelectChangeEvent) => {
                   // @ts-ignore
                   SetProgramType(event.target.value as number);
@@ -594,7 +627,7 @@ const ProgramDetails = () => {
                     flex: 1,
                     minWidth: "180px",
                   }}
-                  label="X"
+                  label="X*"
                   placeholder="Number"
                   inputRef={XRef}
                   inputMode="numeric"
@@ -607,7 +640,7 @@ const ProgramDetails = () => {
                     FormSubmited
                       ? Form.Program_X
                         ? false
-                        : "Program X Coordinates Cant Be Empty"
+                        : "Program X Coordinates Is Required Field"
                       : false
                   }
                 />
@@ -624,7 +657,7 @@ const ProgramDetails = () => {
                     flex: 1,
                     minWidth: "180px",
                   }}
-                  label="Y"
+                  label="Y*"
                   placeholder="Number"
                   inputRef={YRef}
                   inputMode="numeric"
@@ -637,7 +670,7 @@ const ProgramDetails = () => {
                     FormSubmited
                       ? Form.Program_Y
                         ? false
-                        : "Program Y Coordinates Cant Be Empty"
+                        : "Program Y Coordinates Is Required Field"
                       : false
                   }
                 />
@@ -658,7 +691,7 @@ const ProgramDetails = () => {
                     flex: 1,
                     minWidth: "180px",
                   }}
-                  label="Width"
+                  label="Width*"
                   placeholder="Number"
                   inputRef={Width}
                   inputMode="numeric"
@@ -671,7 +704,7 @@ const ProgramDetails = () => {
                     FormSubmited
                       ? Form.Program_W
                         ? false
-                        : "Program Width Cant Be Empty"
+                        : "Program Width Is Required Field"
                       : false
                   }
                 />
@@ -688,7 +721,7 @@ const ProgramDetails = () => {
                     flex: 1,
                     minWidth: "180px",
                   }}
-                  label="Height"
+                  label="Height*"
                   placeholder="Number"
                   inputRef={Height}
                   inputMode="numeric"
@@ -701,7 +734,7 @@ const ProgramDetails = () => {
                     FormSubmited
                       ? Form.Program_H
                         ? false
-                        : "Program Height Cant Be Empty"
+                        : "Program Height Is Required Field"
                       : false
                   }
                 />
@@ -715,7 +748,7 @@ const ProgramDetails = () => {
               }}
             >
               <TextField
-                label="Layer Number"
+                label="Layer Number*"
                 placeholder="Number"
                 inputRef={LayerNumber}
                 inputMode="numeric"
@@ -735,12 +768,12 @@ const ProgramDetails = () => {
                   FormSubmited
                     ? Form.Program_Layer_Number
                       ? false
-                      : "Program Layer Number Cant Be Empty"
+                      : "Program Layer Number Is Required Field"
                     : false
                 }
               />
             </Stack>
-            <Typography variant="h6">Transitions</Typography>
+            <Typography variant="h6">Animations</Typography>
             <Stack direction={"row"} gap={Theme.spacing(3)} flexWrap={"wrap"}>
               <Autocomplete
                 sx={{
@@ -777,10 +810,10 @@ const ProgramDetails = () => {
                       FormSubmited
                         ? Form.Program_Transition
                           ? false
-                          : "Program Y Coordinates Cant Be Empty"
+                          : "Program Enter Transition Cant Coordinates Is Required Field"
                         : false
                     }
-                    label="Enter Transition"
+                    label="Enter Transition*"
                   />
                 )}
               />
@@ -819,15 +852,15 @@ const ProgramDetails = () => {
                       FormSubmited
                         ? Form.Program_Transition_End
                           ? false
-                          : "Program Y Coordinates Cant Be Empty"
+                          : "Program Leave Transition Coordinates Is Required Field"
                         : false
                     }
-                    label="Leave Transition"
+                    label="Leave Transition*"
                   />
                 )}
               />
             </Stack>
-            <Typography variant="h6">Time & Duration</Typography>
+            <Typography variant="h6">Date & Time</Typography>
             <Stack direction={"row"} gap={Theme.spacing(3)} flexWrap={"wrap"}>
               <LocalizationProvider
                 dateAdapter={AdapterMoment}
@@ -841,9 +874,8 @@ const ProgramDetails = () => {
                   }}
                   value={moment(StartDateTime)}
                   onChange={(value) => {
-                    SetStartDateTime(
-                      new Date(moment(value).toString()).getTime()
-                    );
+                    if (value == null) return null;
+                    SetStartDateTime(value.format("YYYY-MM-DDTHH:mm:ss"));
                   }}
                   slots={{
                     textField: (params) => (
@@ -859,7 +891,7 @@ const ProgramDetails = () => {
                           FormSubmited
                             ? Form.Start_DateTime
                               ? false
-                              : "Program Start Date Cant Be Empty"
+                              : "Program Start Date Is Required Field"
                             : false
                         }
                         {...params}
@@ -876,9 +908,8 @@ const ProgramDetails = () => {
                   }}
                   value={moment(EndDateTime)}
                   onChange={(value) => {
-                    SetEndDateTime(
-                      new Date(moment(value).toString()).getTime()
-                    );
+                    if (value == null) return null;
+                    SetEndDateTime(value.format("YYYY-MM-DDTHH:mm:ss"));
                   }}
                   slots={{
                     textField: (params) => (
@@ -894,7 +925,7 @@ const ProgramDetails = () => {
                           FormSubmited
                             ? Form.End_DateTime
                               ? false
-                              : "Program End Date Cant Be Empty"
+                              : "Program End Date Is Required Field"
                             : false
                         }
                         {...params}
@@ -905,53 +936,85 @@ const ProgramDetails = () => {
                 />
               </LocalizationProvider>
             </Stack>
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={AlwaysOn}
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                    SetAlwaysOn(event.target.checked)
+                  }
+                  sx={{ "& .MuiSvgIcon-root": { fontSize: 28 } }}
+                />
+              }
+              label={<Typography variant="h6">Duration & Loop</Typography>}
+            />
+
             <Stack direction={"row"}>
               <TextField
                 fullWidth
-                label="Duration"
+                label="Duration*"
                 placeholder="In Seconds"
                 inputRef={Duration}
                 inputMode="numeric"
+                disabled={!AlwaysOn}
                 onChange={(event) => {
                   const regex = new RegExp(/[^\d]/g);
                   event.target.value = event.target.value.replace(regex, "");
                 }}
                 error={
-                  FormSubmited ? (Form.Program_Duration ? false : true) : false
-                }
-                helperText={
-                  FormSubmited
+                  FormSubmited && AlwaysOn
                     ? Form.Program_Duration
                       ? false
-                      : "Program Duration Date Cant Be Empty"
+                      : true
+                    : false
+                }
+                helperText={
+                  FormSubmited && AlwaysOn
+                    ? Form.Program_Duration
+                      ? false
+                      : "Program Duration Is Required Field, Please enable always if you want it to be empty."
                     : false
                 }
               />
-              <TimeMenu value={Duration_Unit} SetValue={SetDuration_Unit} />
+              <TimeMenu
+                disabled={!AlwaysOn}
+                value={Duration_Unit}
+                SetValue={SetDuration_Unit}
+              />
             </Stack>
             <Stack direction={"row"}>
               <TextField
                 fullWidth
-                label="Loop"
+                label="Loop*"
                 placeholder="In Seconds"
                 inputRef={Loop}
                 inputMode="numeric"
+                disabled={!AlwaysOn}
                 onChange={(event) => {
                   const regex = new RegExp(/[^\d]/g);
                   event.target.value = event.target.value.replace(regex, "");
                 }}
                 error={
-                  FormSubmited ? (Form.Next_Loop_Seconds ? false : true) : false
-                }
-                helperText={
-                  FormSubmited
+                  FormSubmited && AlwaysOn
                     ? Form.Next_Loop_Seconds
                       ? false
-                      : "Program Loop Cant Be Empty"
+                      : true
+                    : false
+                }
+                helperText={
+                  FormSubmited && AlwaysOn
+                    ? Form.Next_Loop_Seconds
+                      ? false
+                      : "Program Loop Is Required Field, Please enable always if you want it to be empty."
                     : false
                 }
               />
-              <TimeMenu value={Loop_Unit} SetValue={SetLoop_Unit} />
+              <TimeMenu
+                disabled={!AlwaysOn}
+                value={Loop_Unit}
+                SetValue={SetLoop_Unit}
+              />
             </Stack>
             <Button
               onClick={HandleSubmit}

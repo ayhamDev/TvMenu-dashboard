@@ -27,7 +27,7 @@ export default function SidebarItemSmall({
 
   if (ismobile)
     return (
-      <Box key={role.title}>
+      <Box key={`${role.title}_mobile`}>
         {role.title ? (
           <>
             <Divider style={{ background: "#d9d9d9", opacity: 0.2 }} />
@@ -41,7 +41,7 @@ export default function SidebarItemSmall({
         ) : null}
         {/* @ts-ignore */}
         {role.items.map((item, index) => (
-          <List key={index}>
+          <List key={`${index}_mobile`}>
             <ListItem
               disablePadding
               sx={{ display: "block", color: colors.grey[300], p: "5px 10px" }}

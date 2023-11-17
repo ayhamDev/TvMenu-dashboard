@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { AdminMotionProps } from "../../utils/ConfigMotion";
 import { SetName } from "../../store/slice/Page";
 import { useDispatch, useSelector } from "react-redux";
@@ -48,24 +48,15 @@ const NewDevices = () => {
   const { status, data } = useQuery<INewDevice[]>({
     queryKey: ["newDevices"],
     queryFn: () => GetNewDevices(admin?.accessToken),
-    refetchInterval: 5000,
+    refetchInterval: 10000,
     refetchIntervalInBackground: true,
   });
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [ModalTitle, SetModalTitle] = useState<string>(
     "Are You Sure You Want To Register This Device ?"
   );
   const [ModalText, SetModalText] = useState<string>(
     `This Device Has Requested To Be Registered, If You Want To Confirm That This Device Should Be Registered Click on Register, If Not Click on Cancel.`
   );
-  const QuickActionsOpen = Boolean(anchorEl);
-  const OpenQuickActions = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const CloseQuickActions = () => {
-    setAnchorEl(null);
-  };
-
   const columns: GridColDef[] = [
     {
       field: "User_ID",
@@ -141,6 +132,19 @@ const NewDevices = () => {
         text={ModalText}
         method="post"
         Cachekey={["newDevices"]}
+        fields={[
+          {
+            name: "Device_Name",
+            label: "Device Name",
+            helperText: "Device Name Is Required ",
+            required: true,
+          },
+          {
+            name: "Device_Notes",
+            label: "Device Description",
+            multiline: true,
+          },
+        ]}
       />
       <motion.div {...AdminMotionProps}>
         <Stack
@@ -150,55 +154,6 @@ const NewDevices = () => {
           gap={Theme.spacing(4)}
         >
           <Typography variant="h5">New Devices</Typography>
-          <IconButton id="QuickActions" onClick={OpenQuickActions}>
-            <Badge badgeContent={Selections.length} color="primary">
-              <MoreVertRounded />
-            </Badge>
-          </IconButton>
-          <Menu
-            id="QuickActions"
-            anchorEl={anchorEl}
-            open={QuickActionsOpen}
-            onClose={CloseQuickActions}
-            MenuListProps={{
-              "aria-labelledby": "basic-button",
-            }}
-          >
-            <MenuItem
-              onClick={() => {
-                CloseQuickActions();
-                if (Selections.length == 0) return null;
-                SetEndPoint("/bulk");
-                SetOpen(true);
-                setSelectedRow(Selections);
-                SetModalTitle(
-                  `Are You Sure You Want To Register ${
-                    Selections.length == 1
-                      ? "This Device"
-                      : "All Of These Devices"
-                  } ?`
-                );
-                SetModalText(
-                  `${
-                    Selections.length == 1
-                      ? "This Device Has"
-                      : "These Devices Have"
-                  } Requested To Be Registered, If You Want To Confirm That This Device Should Be Registered Click on Register, If Not Click on Cancel.`
-                );
-              }}
-            >
-              <ListItemIcon>
-                <LockOpenRounded fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>
-                Register
-                <span style={{ color: Theme.palette.grey[400] }}>
-                  {" "}
-                  ({Selections.length})
-                </span>
-              </ListItemText>
-            </MenuItem>
-          </Menu>
         </Stack>
         <Paper
           className="FancyBoxShadow"
@@ -228,12 +183,7 @@ const NewDevices = () => {
             disableRowSelectionOnClick={true}
             columns={columns}
             rows={rows}
-            checkboxSelection
             // @ts-ignore
-            onRowSelectionModelChange={(selections: number[]) => {
-              setSelections(selections);
-            }}
-            rowSelectionModel={Selections}
             initialState={{
               sorting: {
                 sortModel: [{ field: "Last_Date_Time_Hit", sort: "desc" }],

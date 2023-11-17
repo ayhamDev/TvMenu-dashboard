@@ -1,15 +1,17 @@
 import api from "./API";
 
-export default function GetPrograms(
+export default function GetUserById(
   token: string | undefined,
-  params?: object | undefined
+  id: string | undefined
 ) {
   return api
-    .get("/program", {
+    .get("/user/single", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      params: params,
+      params: {
+        User_ID: id,
+      },
     })
     .then((res) => res.data);
 }

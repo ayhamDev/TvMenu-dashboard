@@ -15,6 +15,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowBackIosRounded } from "@mui/icons-material";
 import Panel from "../../../components/Admin/Panel";
 import DevicePanel from "../../../components/Admin/panel/Device.panel";
+import ProgramsPanel from "../../../components/Admin/panel/Program.panel";
 
 const DeviceDetails = () => {
   const Dispatch = useDispatch();
@@ -43,7 +44,7 @@ const DeviceDetails = () => {
             width: "50px",
             height: "50px",
           }}
-          onClick={() => navigate("/admin/device")}
+          onClick={() => history.back()}
         >
           <ArrowBackIosRounded />
         </IconButton>
@@ -51,7 +52,7 @@ const DeviceDetails = () => {
       </Stack>
 
       <Tabs value={CurrentTab} onChange={handleChange}>
-        <Tab label="Device" />
+        <Tab label="Info" />
         <Tab label="Programs" />
         <Tab label="Logs" />
       </Tabs>
@@ -59,7 +60,7 @@ const DeviceDetails = () => {
         <DevicePanel id={device_id} />
       </Panel>
       <Panel value={CurrentTab} index={1}>
-        Programs
+        <ProgramsPanel Device_ID={device_id} />
       </Panel>
       <Panel value={CurrentTab} index={2}>
         Logs

@@ -15,8 +15,6 @@ const EnterAnimations: TypeEnterAnimations[] = [
   "fadeInLeftBig",
   "fadeInRight",
   "fadeInRightBig",
-  "flipInX",
-  "flipInY",
   "lightSpeedIn",
   "slideInDown",
   "slideInUp",

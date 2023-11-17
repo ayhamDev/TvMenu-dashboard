@@ -1,6 +1,7 @@
 import {
   Button,
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
   Paper,
@@ -17,27 +18,33 @@ import useAdminAuth from "../../../hooks/useAdminAuth";
 import GetDevicesById from "../../../api/GetDeviceById";
 import LoadingSpinner from "../../LoadingSpinner";
 import moment from "moment";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import IDevice from "../../../types/IDevice";
 import { Status as StatusType } from "../../../types/Status";
 import ConfirmModal from "../ConfirmModal";
 import { Navigate, useNavigate } from "react-router-dom";
-interface DevicePanelProps {
-  id: string | undefined;
-}
-const DevicePanel = (props: DevicePanelProps) => {
+import { useDispatch } from "react-redux";
+import { SetName } from "../../../store/slice/Page";
+import toast from "react-hot-toast";
+import { Visibility } from "@mui/icons-material";
+
+const DevicePanel = (props: { id: string | undefined }) => {
   const { admin } = useAdminAuth();
   const Theme = useTheme();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const { data, error, isLoading, isFetching } = useQuery<IDevice>({
     queryKey: ["Devices", props.id],
     queryFn: () => GetDevicesById(admin?.accessToken, props.id),
   });
   const [Status, SetStatus] = useState<StatusType | "">("Active");
-  const [StatusMessage, SetStatusMessage] = useState<string>();
-  const [OfflineImage, SetOfflineImage] = useState<string>();
+  const [StatusMessage, SetStatusMessage] = useState<string>("");
+  const [OfflineImage, SetOfflineImage] = useState<string>("");
   const [ModalOpen, SetModalOpen] = useState<boolean>(false);
   const [NewData, SetNewData] = useState<object | undefined>(undefined);
+  const [DeviceName, SetDeviceName] = useState<string>("");
+  const [DeviceNote, SetDeviceNote] = useState<string>("");
   useEffect(() => {
     if (data) {
       SetStatus(data.Status);
@@ -46,14 +53,18 @@ const DevicePanel = (props: DevicePanelProps) => {
       SetStatusMessage(data.Status_Message);
       // @ts-ignore
       SetOfflineImage(data.Offline_Image);
+      SetDeviceName(data.Device_Name);
+      SetDeviceNote(data.Device_Note);
     }
   }, [data]);
   const handleStatusChange = (event: SelectChangeEvent) => {
     // @ts-ignore
     SetStatus(event.target.value);
   };
+  useLayoutEffect(() => {
+    dispatch(SetName("Menuone | Device Details"));
+  });
   if (isLoading) return <LoadingSpinner />;
-  if (isFetching) return <LoadingSpinner />;
   if (error) return <Navigate to={"/admin/device"} replace={true} />;
 
   return (
@@ -77,9 +88,34 @@ const DevicePanel = (props: DevicePanelProps) => {
         sx={{
           mt: Theme.spacing(3),
           p: Theme.spacing(3),
+          m: "auto",
+          maxWidth: "650px",
         }}
       >
         <Stack gap={3}>
+          <Stack
+            direction={"row"}
+            alignItems={"center"}
+            justifyContent={"space-between"}
+          >
+            <Typography variant="h6">Device Info</Typography>
+
+            <Tooltip title="Preview">
+              <IconButton
+                onClick={() =>
+                  navigate(
+                    `/preview?${
+                      data?.User_ID ? `User_ID=${data?.User_ID}` : ""
+                    }${data?.Device_ID ? `&Device_ID=${data.Device_ID}` : ""}`
+                  )
+                }
+                color="primary"
+                size="large"
+              >
+                <Visibility />
+              </IconButton>
+            </Tooltip>
+          </Stack>
           <Stack>
             <Typography
               sx={{
@@ -98,13 +134,16 @@ const DevicePanel = (props: DevicePanelProps) => {
                       e.currentTarget.textContent
                     )
                     .then(() => {
-                      console.log("copied");
+                      toast.success("Copied To Clipboard");
+                    })
+                    .catch(() => {
+                      toast.error("Failed To Copy To Clipboard");
                     });
                 }}
                 sx={{
                   userSelect: "none",
                   cursor: "pointer",
-                  width: "max-content",
+                  width: "fit-content",
                 }}
                 variant="h6"
                 id="copy"
@@ -117,6 +156,7 @@ const DevicePanel = (props: DevicePanelProps) => {
             <Typography
               sx={{
                 userSelect: "none",
+                width: "fit-content",
               }}
               variant="subtitle1"
             >
@@ -131,13 +171,15 @@ const DevicePanel = (props: DevicePanelProps) => {
                       e.currentTarget.textContent
                     )
                     .then(() => {
-                      console.log("copied");
+                      toast.success("Copied To Clipboard");
+                    })
+                    .catch(() => {
+                      toast.error("Failed To Copy To Clipboard");
                     });
                 }}
                 sx={{
                   userSelect: "none",
                   cursor: "pointer",
-                  width: "max-content",
                 }}
                 variant="h6"
                 id="copy"
@@ -164,13 +206,16 @@ const DevicePanel = (props: DevicePanelProps) => {
                       e.currentTarget.textContent
                     )
                     .then(() => {
-                      console.log("copied");
+                      toast.success("Copied To Clipboard");
+                    })
+                    .catch(() => {
+                      toast.error("Failed To Copy To Clipboard");
                     });
                 }}
                 sx={{
                   userSelect: "none",
                   cursor: "pointer",
-                  width: "max-content",
+                  width: "fit-content",
                 }}
                 variant="h6"
                 id="copy"
@@ -222,21 +267,36 @@ const DevicePanel = (props: DevicePanelProps) => {
             <Typography
               sx={{
                 userSelect: "none",
-                width: "max-content",
               }}
               variant="h6"
               id="copy"
             >
-              {data?.Last_Online_hit == null
+              {data?.connectionID
+                ? moment(Date.now()).format("lll")
+                : data?.Last_Online_hit == null
                 ? "N/A"
                 : moment(data?.Last_Online_hit).format("lll")}
             </Typography>
           </Stack>
-          <FormControl
-            sx={{
-              maxWidth: "350px",
-            }}
-          >
+          <TextField
+            error={NewData && !DeviceName ? true : false}
+            helperText={
+              NewData && !DeviceName
+                ? "Device Name Is Required Field"
+                : undefined
+            }
+            label="Device Name*"
+            value={DeviceName || ""}
+            onChange={(e) => SetDeviceName(e.target.value)}
+          />
+          <TextField
+            multiline
+            rows={4}
+            label="Device Description"
+            value={DeviceNote || ""}
+            onChange={(e) => SetDeviceNote(e.target.value)}
+          />
+          <FormControl>
             <InputLabel id="Status_Select-label">Status</InputLabel>
             <Select
               labelId="Status_Select-label"
@@ -250,27 +310,18 @@ const DevicePanel = (props: DevicePanelProps) => {
             </Select>
           </FormControl>
           <TextField
-            sx={{
-              maxWidth: "350px",
-            }}
             placeholder="E.g This Device Is Suspended..."
             label="Suspended Message"
             value={StatusMessage || ""}
             onChange={(e) => SetStatusMessage(e.target.value)}
           />
           <TextField
-            sx={{
-              maxWidth: "350px",
-            }}
             placeholder="E.g https://example.com/offline.png"
             label="Offline Image (URL)"
             value={OfflineImage || ""}
             onChange={(e) => SetOfflineImage(e.target.value)}
           />
           <Button
-            sx={{
-              ml: "auto",
-            }}
             size="large"
             variant="contained"
             onClick={() => {
@@ -278,11 +329,19 @@ const DevicePanel = (props: DevicePanelProps) => {
                 Status: Status,
                 Status_Message: StatusMessage,
                 Offline_Image: OfflineImage,
+                Device_Name: DeviceName,
+                Device_Note: DeviceNote,
               });
+              if (DeviceName.length == 0)
+                return toast.error(
+                  "Error: Please Fill All The Empty Fields.",
+                  {}
+                );
+
               SetModalOpen(true);
             }}
           >
-            Save
+            Update
           </Button>
         </Stack>
       </Paper>

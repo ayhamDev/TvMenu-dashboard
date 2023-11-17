@@ -18,10 +18,11 @@ export default interface IProgram {
   Program_W: string | undefined;
   Program_H: string | undefined;
   Program_Layer_Number: string | undefined;
-  Start_DateTime: number | null;
-  End_DateTime: number | null;
+  Start_DateTime: string | null;
+  End_DateTime: string | null;
   Program_Duration: string | undefined;
   Next_Loop_Seconds: string | undefined;
   Program_Transition: TypeEnterAnimations;
   Program_Transition_End: TypeLeaveAnimations;
+  Program_Row_Number: number;
 }
